@@ -11,6 +11,7 @@ provider:
     role: arn:aws:iam::708642711016:role/LabRole	
   environment:
     TABLE_NAME: ${sls:stage}-t_comentarios
+    BUCKET_NAME: ${sls:stage}-bucket-ingesta-comentarios
 
 functions:
   crear:
@@ -40,3 +41,25 @@ resources:
             KeyType: RANGE
         # Set the capacity to auto-scale
         BillingMode: PAY_PER_REQUEST
+    BucketComentarios:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${self:provider.environment.BUCKET_NAME}
+        OwnershipControls:
+          Rules:
+            - ObjectOwnership: BucketOwnerPreferred
+
+        PublicAccessBlockConfiguration:
+          BlockPublicAcls: false
+          IgnorePublicAcls: false
+          BlockPublicPolicy: false
+          RestrictPublicBuckets: false
+        BucketPolicy:
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Sid: "PublicReadGetObject"
+                Effect: "Allow"          
+                Principal: "*"          
+                Action: "s3:GetObject"  
+                Resource: "arn:aws:s3:::${self:provider.environment.BUCKET_NAME}/*" 
